@@ -6,10 +6,12 @@ import re
 from email.mime.text import MIMEText
 from google import genai
 
-st.set_page_config(page_title="Coding chatbot", page_icon="🤖", layout="wide")
+# Set page title, layout, and favicon (make sure favicon.ico is in the same folder)
+st.set_page_config(page_title="Alissa Chatbot", page_icon="🤖", layout="wide")
 
 st.title("🤖 Alissa Chatbot")
 
+# Email config - replace with your info
 SENDER_EMAIL = "ali88883737@gmail.com"
 SENDER_PASSWORD = "awch igef pnta xkyv"
 SMTP_SERVER = "smtp.gmail.com"
@@ -25,9 +27,7 @@ if "logged_in" not in st.session_state:
 if "email" not in st.session_state:
     st.session_state.email = ""
 if "rerun_flag" not in st.session_state:
-    st.session_state.rerun_flag = False  
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+    st.session_state.rerun_flag = False  # for safe rerun
 
 def rerun():
     st.session_state.rerun_flag = not st.session_state.rerun_flag
@@ -134,7 +134,6 @@ def main():
             password = st.text_input("Password", type="password")
             if st.button("Login"):
                 if login(email, password):
-                    st.session_state.chat_history = []  
                     rerun()
                 else:
                     st.error("Invalid credentials")
@@ -169,78 +168,22 @@ def main():
     st.sidebar.success(f"Logged in as {st.session_state.email}")
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
-        st.session_state.chat_history = []
         rerun()
 
-    chat_container = st.container()
-
     input_text = st.text_input("Ask Alissa something")
-
     if input_text:
         if not can_use(st.session_state.email):
             st.warning("Limit reached. Try again tomorrow.")
             return
-
-        st.session_state.chat_history.append({"sender": "user", "message": input_text})
-
-        with st.spinner("Alissa is thinking..."):
-            if "مين صممك" in input_text or "من صممك" in input_text or "who designed you" in input_text.lower():
-                bot_response = "Ali Khalid Ali Khalid"
-            else:
-                response = client.models.generate_content(
-                    model="gemini-2.0-flash",
-                    contents=input_text
-                )
-                bot_response = response.text.strip()
-
-            update_usage(st.session_state.email)
-
-        # تحقق إذا الرد يحتوي على كود محاط بـ ``` 
-        if bot_response.startswith("```") and bot_response.endswith("```"):
-            code_only = bot_response.strip("```").strip()
-            st.session_state.chat_history.append({"sender": "bot", "message": code_only, "is_code": True})
+        if "مين صممك" in input_text or "من صممك" in input_text or "who designed you" in input_text.lower():
+            st.write("Ali Khalid Ali Khalid")
         else:
-            st.session_state.chat_history.append({"sender": "bot", "message": bot_response, "is_code": False})
-
-    with chat_container:
-        for chat in st.session_state.chat_history:
-            if chat["sender"] == "user":
-                st.markdown(f"""
-                <div style="display: flex; justify-content: flex-end; margin: 8px 0;">
-                    <div style="
-                        background-color: #0078d7;
-                        color: white;
-                        padding: 12px 18px;
-                        border-radius: 20px 20px 0 20px;
-                        max-width: 70%;
-                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        font-size: 15px;
-                        word-wrap: break-word;">
-                        {chat['message']}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:  # bot
-                if chat.get("is_code", False):
-                    st.code(chat["message"], language="python")
-                else:
-                    st.markdown(f"""
-                    <div style="display: flex; justify-content: flex-start; margin: 8px 0;">
-                        <div style="
-                            background-color: #f1f0f0;
-                            color: #333;
-                            padding: 12px 18px;
-                            border-radius: 20px 20px 20px 0;
-                            max-width: 70%;
-                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            font-size: 15px;
-                            word-wrap: break-word;">
-                            {chat['message']}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=input_text
+            )
+            update_usage(st.session_state.email)
+            st.write(response.text.strip())
 
     uploaded_files = st.file_uploader("Upload a file (Max 4 per day)", accept_multiple_files=True)
     if uploaded_files:
@@ -253,4 +196,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-#requirements.txt
