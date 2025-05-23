@@ -6,11 +6,9 @@ import re
 from email.mime.text import MIMEText
 from google import genai
 
-
 st.set_page_config(page_title="Coding chatbot", page_icon="🤖", layout="wide")
 
 st.title("🤖 Alissa Chatbot")
-
 
 SENDER_EMAIL = "ali88883737@gmail.com"
 SENDER_PASSWORD = "awch igef pnta xkyv"
@@ -185,7 +183,6 @@ def main():
 
         st.session_state.chat_history.append({"sender": "user", "message": input_text})
 
-        
         with st.spinner("Alissa is thinking..."):
             if "مين صممك" in input_text or "من صممك" in input_text or "who designed you" in input_text.lower():
                 bot_response = "Ali Khalid Ali Khalid"
@@ -195,45 +192,56 @@ def main():
                     contents=input_text
                 )
                 bot_response = response.text.strip()
+
             update_usage(st.session_state.email)
 
-    
-        st.session_state.chat_history.append({"sender": "bot", "message": bot_response})
+        # تحقق إذا الرد يحتوي على كود محاط بـ ``` 
+        if bot_response.startswith("```") and bot_response.endswith("```"):
+            code_only = bot_response.strip("```").strip()
+            st.session_state.chat_history.append({"sender": "bot", "message": code_only, "is_code": True})
+        else:
+            st.session_state.chat_history.append({"sender": "bot", "message": bot_response, "is_code": False})
 
     with chat_container:
         for chat in st.session_state.chat_history:
             if chat["sender"] == "user":
                 st.markdown(f"""
-                <div style="text-align: right; margin: 5px 0;">
+                <div style="display: flex; justify-content: flex-end; margin: 8px 0;">
                     <div style="
-                        display: inline-block;
-                        background-color: #DCF8C6;
-                        color: #000;
-                        padding: 10px 15px;
-                        border-radius: 15px 15px 0 15px;
+                        background-color: #0078d7;
+                        color: white;
+                        padding: 12px 18px;
+                        border-radius: 20px 20px 0 20px;
                         max-width: 70%;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        font-size: 15px;
                         word-wrap: break-word;">
                         {chat['message']}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-            else:  
-                st.markdown(f"""
-                <div style="text-align: left; margin: 5px 0;">
-                    <div style="
-                        display: inline-block;
-                        background-color: #EAEAEA;
-                        color: #000;
-                        padding: 10px 15px;
-                        border-radius: 15px 15px 15px 0;
-                        max-width: 70%;
-                        word-wrap: break-word;">
-                        {chat['message']}
+            else:  # bot
+                if chat.get("is_code", False):
+                    st.code(chat["message"], language="python")
+                else:
+                    st.markdown(f"""
+                    <div style="display: flex; justify-content: flex-start; margin: 8px 0;">
+                        <div style="
+                            background-color: #f1f0f0;
+                            color: #333;
+                            padding: 12px 18px;
+                            border-radius: 20px 20px 20px 0;
+                            max-width: 70%;
+                            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            font-size: 15px;
+                            word-wrap: break-word;">
+                            {chat['message']}
+                        </div>
                     </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
-    
     uploaded_files = st.file_uploader("Upload a file (Max 4 per day)", accept_multiple_files=True)
     if uploaded_files:
         for uploaded_file in uploaded_files:
@@ -245,3 +253,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+#requirements.txt
