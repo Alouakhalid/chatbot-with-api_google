@@ -59,7 +59,7 @@ Alissa Chatbot is an interactive web-based assistant built using Streamlit and G
 
 - **Chats**: Max 10 per day (per user)
 - **Uploads**: Max 4 files per day (per user)
-- **Developer Email** (`ali88883737@gmail.com`) has unlimited access.
+
 
 ---
 
